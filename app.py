@@ -1,12 +1,16 @@
-from fastapi import FastAPI, HTTPException, Response
+from fastapi import FastAPI, HTTPException, Response, Request
 from auth import authenticate
 from models import LoginRequest
 from session_store import create_session, sessions
+from middleware import SessionMiddleware
+
 
 # Create the FastAPI application object.
 # Uvicorn looks for this object when you run:
 # uvicorn app:app --reload
 app = FastAPI()
+# register the middleware
+app.middleware("http")(SessionMiddleware())
 
 
 @app.get("/")
@@ -50,3 +54,11 @@ def login(login: LoginRequest, response: Response):
 @app.get("/debug/sessions")
 def debug_sessions():
     return sessions
+
+@app.get("/whoami")
+def who_am_i(request: Request):
+
+    return {
+        "session_id": request.state.session_id,
+        "session": request.state.session
+    }
