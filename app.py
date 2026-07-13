@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from auth import authenticate
 from models import LoginRequest
+from session_store import create_session, sessions
 
 # Create the FastAPI application object.
 # Uvicorn looks for this object when you run:
@@ -33,7 +34,13 @@ def login(login: LoginRequest):
             detail="Invalid username or password"
         )
 
+    session_id = create_session(login.username)
+
     return {
         "message": "Authentication successful",
-        "username": login.username
+        "session_id": session_id
     }
+
+@app.get("/debug/sessions")
+def debug_sessions():
+    return sessions
