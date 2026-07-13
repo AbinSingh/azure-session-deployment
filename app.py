@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Response
 from auth import authenticate
 from models import LoginRequest
 from session_store import create_session, sessions
@@ -22,7 +22,7 @@ def health_check():
     }
 
 @app.post("/login")
-def login(login: LoginRequest):
+def login(login: LoginRequest, response: Response):
     """
     Authenticate the user.
     No session is created in this commit.
@@ -36,9 +36,15 @@ def login(login: LoginRequest):
 
     session_id = create_session(login.username)
 
+    response.set_cookie(
+        key="session_id",
+        value=session_id,
+        httponly=True,
+        secure=False
+    )
+
     return {
         "message": "Authentication successful",
-        "session_id": session_id
     }
 
 @app.get("/debug/sessions")
