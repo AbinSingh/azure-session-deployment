@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, Response, Request
 from auth import authenticate
 from models import LoginRequest
-from session_store import create_session, sessions
+from session_store import create_session, sessions, delete_session
 from middleware import SessionMiddleware
 
 
@@ -78,3 +78,15 @@ def profile(request: Request):
             "username": request.state.session["username"]
         }
     }
+
+@app.post("/logout")
+def logout(request: Request, response: Response):
+
+    if request.state.session_id:
+        delete_session(request.state.session_id)
+
+    response.delete_cookie(key="session_id")
+
+    return {
+        "message": "Logged out successfully"
+}
