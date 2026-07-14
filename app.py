@@ -62,3 +62,19 @@ def who_am_i(request: Request):
         "session_id": request.state.session_id,
         "session": request.state.session
     }
+
+@app.get("/profile")
+def profile(request: Request):
+
+    if request.state.session is None:
+        raise HTTPException(
+            status_code=401,
+            detail="Authentication required"
+        )
+
+    return {
+        "message": "Profile retrieved successfully",
+        "profile": {
+            "username": request.state.session["username"]
+        }
+    }
