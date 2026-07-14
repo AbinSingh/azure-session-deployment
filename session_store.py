@@ -1,10 +1,11 @@
 import uuid
+from datetime import datetime, timedelta
 
 # In-memory session store
 # Key   -> Session ID
 # Value -> Session data
 sessions = {}
-
+SESSION_TIMEOUT_MINUTES = 1
 
 def create_session(username: str) -> str:
     """
@@ -14,8 +15,12 @@ def create_session(username: str) -> str:
 
     session_id = str(uuid.uuid4())
 
+    now = datetime.utcnow()
+
     sessions[session_id] = {
-        "username": username
+        "username": username,
+        "created_at": now,
+        "last_accessed": now
     }
 
     return session_id
@@ -26,7 +31,22 @@ def get_session(session_id: str):
     Retrieve session information.
     """
 
-    return sessions.get(session_id)
+    session = sessions.get(session_id)
+
+    if session is None:
+        return None
+
+    now = datetime.utcnow()
+
+    last_accessed = session["last_accessed"]
+
+    if now - last_accessed > timedelta(minutes=SESSION_TIMEOUT_MINUTES):
+        delete_session(session_id)
+        return None
+
+    session["last_accessed"] = now
+
+    return session
 
 
 def delete_session(session_id: str):
