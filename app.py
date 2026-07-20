@@ -3,7 +3,7 @@ from auth import authenticate
 from models import LoginRequest
 from session_store import create_session, sessions, delete_session
 from middleware import SessionMiddleware
-
+from redis_client import redis_client
 
 # Create the FastAPI application object.
 # Uvicorn looks for this object when you run:
@@ -90,3 +90,12 @@ def logout(request: Request, response: Response):
     return {
         "message": "Logged out successfully"
 }
+
+@app.get("/redis/ping")
+def redis_ping():
+
+    result = redis_client.ping()
+
+    return {
+        "redis_connected": result
+    }
