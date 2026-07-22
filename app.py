@@ -1,9 +1,10 @@
 from fastapi import FastAPI, HTTPException, Response, Request
 from auth import authenticate
 from models import LoginRequest
-from session_store import create_session, sessions, delete_session
+from session_store import create_session, delete_session
 from middleware import SessionMiddleware
 from redis_client import redis_client
+import json
 
 # Create the FastAPI application object.
 # Uvicorn looks for this object when you run:
@@ -53,6 +54,15 @@ def login(login: LoginRequest, response: Response):
 
 @app.get("/debug/sessions")
 def debug_sessions():
+
+    sessions = {}
+
+    for key in redis_client.keys("*"):
+
+        sessions[key] = json.loads(
+            redis_client.get(key)
+        )
+
     return sessions
 
 @app.get("/whoami")

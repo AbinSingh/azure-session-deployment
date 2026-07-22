@@ -1,10 +1,13 @@
+import json
 import uuid
 from datetime import datetime, timedelta
+from redis_client import redis_client
+
 
 # In-memory session store
 # Key   -> Session ID
 # Value -> Session data
-sessions = {}
+
 SESSION_TIMEOUT_MINUTES = 1
 
 def create_session(username: str) -> str:
@@ -17,11 +20,16 @@ def create_session(username: str) -> str:
 
     now = datetime.utcnow()
 
-    sessions[session_id] = {
+    session = {
         "username": username,
-        "created_at": now,
-        "last_accessed": now
+        "created_at": now.isoformat(),
+        "last_accessed": now.isoformat()
     }
+
+    redis_client.set(
+        session_id,
+        json.dumps(session)
+    )
 
     return session_id
 
@@ -31,20 +39,29 @@ def get_session(session_id: str):
     Retrieve session information.
     """
 
-    session = sessions.get(session_id)
+    session_json = redis_client.get(session_id)
 
-    if session is None:
+    if session_json is None:
         return None
+
+    session = json.loads(session_json)
 
     now = datetime.utcnow()
 
-    last_accessed = session["last_accessed"]
+    last_accessed = datetime.fromisoformat(
+        session["last_accessed"]
+    )
 
     if now - last_accessed > timedelta(minutes=SESSION_TIMEOUT_MINUTES):
         delete_session(session_id)
         return None
 
-    session["last_accessed"] = now
+    session["last_accessed"] = now.isoformat()
+
+    redis_client.set(
+        session_id,
+        json.dumps(session)
+    )
 
     return session
 
@@ -54,4 +71,4 @@ def delete_session(session_id: str):
     Delete a session.
     """
 
-    sessions.pop(session_id, None)
+    redis_client.delete(session_id)
