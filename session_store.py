@@ -8,7 +8,7 @@ from redis_client import redis_client
 # Key   -> Session ID
 # Value -> Session data
 
-SESSION_TIMEOUT_MINUTES = 1
+SESSION_TIMEOUT_MINUTES = 100
 
 def create_session(username: str) -> str:
     """
