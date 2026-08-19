@@ -1,3 +1,4 @@
 .env
 azure-session
 docs
+.env.local
