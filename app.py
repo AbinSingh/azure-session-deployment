@@ -5,6 +5,8 @@ from session_store import create_session, delete_session
 from middleware import SessionMiddleware
 from redis_client import redis_client
 import json
+import socket
+import os
 
 # Create the FastAPI application object.
 # Uvicorn looks for this object when you run:
@@ -108,4 +110,12 @@ def redis_ping():
 
     return {
         "redis_connected": result
+    }
+
+@app.get("/debug/pod")
+def debug_pod(request: Request):
+    return {
+        "hostname": socket.gethostname(),
+        "pod_name": os.getenv("HOSTNAME"),
+        "client": request.client.host if request.client else None,
     }
